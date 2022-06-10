@@ -1,0 +1,28 @@
+
+$TTL 1D
+@               IN      SOA     morpheus.thematrix.local. root.morpheus.thematrix.local. (
+                0 ; serial
+                1D ; refresh
+                1H ; retry
+                1W ; expire
+                3H ; minimum
+)
+@               IN      NS      morpheus.thematrix.local.
+@               IN      A       192.168.76.98
+morpheus        IN      A       192.168.76.98
+morpheus        IN      AAAA    2001:db8:1:3::98
+dns             IN      CNAME   morpheus.thematrix.local.
+agentsmith      IN      A       192.168.76.97
+agentsmith      IN      AAAA    2001:db8:1:3::97
+ad              IN      CNAME   agentsmith.thematrix.local.        
+neo             IN      AAAA    2001:db8:1:3::101
+neo             IN      A       192.168.76.101
+$ORIGIN thematrix.local.
+@ 3600          IN      MX      10 neo
+mail            IN      CNAME   neo.thematrix.local.
+thematrix.local.        IN      TXT     "v=spf ip4:192.168.76.101 a mx ptr include:neo.thematrix.local -all"
+trinity         IN      A       192.168.76.99
+trinity         IN      AAAA    2001:db8:1:3::99
+www             IN      CNAME   trinity.thematrix.local.
+www.thematrix.local             IN      A       192.168.76.99      
+thematrix.local IN CNAME www.thematrix.local.

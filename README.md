@@ -1,16 +1,17 @@
-# PROJECT - SEP
-This repo contains code of the System Engineering Project course.  
-I worked on this during my second year applied computer science at HOGENT.  
-This project has:  
-  * Windows
-    * Script for Active Directory Server creation.
-    * Script for Exchange 2016 Server creation
-    * Script for Windows Client creation
-    * Script for Windows Deployment Kit
-   
-  * Linux
-    * Script for DNS server creation
-    * Script for Webserver creation.
+# System Engineering Project
 
-Hf!
-  
+Lees [TODO.md](TODO.md) door bij aanvang van je project!
+
+## Groepsleden
+
+| Naam                 | GitHub gebruikersnaam                                     |
+| :------------------- | :-------------------------------------------------------- |
+| Jorn De Meyer        | [JornDM](https://github.com/JornDM)                       |
+| Jochen Wimme         | [JochenWimme](https://github.com/JochenWimme)             |
+| Kevin Benoit         | [KevinBenoitt](https://github.com/vultdaffkesinkevindanku) |
+| Sander Van Noten     | [Sander Van Noten](https://github.com/sanderVanNoten)     |
+| Tibbe Van den Berghe | [TibbeVandenBerghe](https://github.com/TibbeVandenBerghe) |
+
+## Afspraken ivm communicatie, gebruik tools
+
+(beschrijf hier of in een apart document al wat jullie onderling of met jullie begeleiders afgesproken hebben ivm samenwerken: werkwijze gebruik versiebeheer, kanbanbord en tijdregistratie, voorbereiden weekrapporten, enz.)

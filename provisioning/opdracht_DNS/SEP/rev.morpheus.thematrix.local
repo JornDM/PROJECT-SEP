@@ -1,0 +1,19 @@
+$TTL 1D
+@               IN      SOA     morpheus.thematrix.local. root.morpheus.thematrix.local. (
+
+                0 ; Serial
+                1D ; Refresh
+                1H ; Retry
+                1W ; Expire
+                3H ; Minimum TTL
+)
+
+@               IN      NS      morpheus.thematrix.local.
+
+@               IN      PTR     morpheus.thematrix.local.
+
+morpheus        IN      A       192.168.76.98
+98              IN      PTR     morpheus.thematrix.local.
+97              IN      PTR     agentsmith.thematrix.local.
+99              IN      PTR     trinity.thematrix.local.
+101             IN      PTR     neo.thematrix.local.
