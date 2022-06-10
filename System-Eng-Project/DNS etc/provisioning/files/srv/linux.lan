@@ -1,0 +1,20 @@
+$ORIGIN linux.lan.
+$TTL 1W
+
+@ IN SOA ns.linux.lan. jochen.wimme.student.hogent.be. (
+        21120117 1D 1H 1W 1D )
+
+                IN      NS      ns1
+
+                IN      MX      10 mail
+
+ns1             IN      A       192.168.76.254
+
+db              IN      A       192.168.76.3
+
+web             IN      A       192.168.76.4
+www             IN      CNAME   web
+
+mail            IN      A       192.168.76.10
+smtp            IN      CNAME   mail
+imap            IN      CNAME   smtp

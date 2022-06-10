@@ -1,0 +1,12 @@
+$TTL 1W
+$ORIGIN 76.168.192.in-addr.arpa.
+
+@ IN SOA ns.linux.lan. victor.vanhooren.student.hogent.be. (
+        21120117 1D 1H 1W 1D )
+
+                IN      NS      ns1.linux.lan.
+
+254             IN      PTR       ns1.linux.lan.
+3               IN      PTR       db.linux.lan.
+4               IN      PTR       web.linux.lan.
+10              IN      PTR       mail.example.com.

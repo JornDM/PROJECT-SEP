@@ -1,0 +1,237 @@
+Iteratie 1:
+-----------
+eerste stap:
+------------
+install bind: sudo dnf install bind
+
+tweede stap:
+------------
+ga naar /etc/named.conf en wijzig 
+listen on ip naar any en allow-query naar any
+
+derde stap:
+-----------
+start de service met service named start en check met systemctl status
+eventueel gebruik enable ook zodat hij telkens start bij opstart
+
+vierde vergeet de firewall niet:
+---------------------------------
+dus sudo firewall-cmd --permanent --add-port 53/udp
+en dan firewall-cmd --reload
+
+vijfde controle van alles:
+-------------------------
+
+zesde:
+------
+enable query logging via rndc querylog
+en bekijk dan via journalctl -f --unit=named
+of via journalctl -f -u named.service
+
+log vanaf de server naar zichzelf moet een antwoord geven via
+nslookup www.hogent.be localhost
+en vanaf mint dus www.hogent.be 192.168.76.254
+
+het script noemt srv en is in de automation folder best met visual studio bekijken
+en het werkt
+
+https://chris.lu/article/read/5079d7b5268c42657a000009
+
+script:
+-------
+log "installeer bind"
+sudo dnf install -y bind
+log "wijzig zodat hij naar alle interfaces luisterd en zodat iedereen toegang heeft"
+sed -i 's/127.0.0.1/any/' /etc/named.conf
+sed -i 's/localhost/any/' /etc/named.conf
+log "geef toegang aan poort 53 die door BIND gebruikt wordt"
+sudo firewall-cmd --permanent --add-port 53/udp
+log "reload de firewall"
+sudo firewall-cmd --reload
+log "start de service"
+sudo systemctl start named
+log "enable de service"
+sudo systemctl enable named
+
+Iteratie 2:
+-----------
+zeer gelijkaarig aan vorig iteratie
+verschillen in de etc/named.conf recursion niet aanzetten op no zetten
+bij zone moet je tusse de "" linux.lan zetten dan de opties aanvullen
+type master;
+file "linux.lan";
+notify yes;
+allow-update { none; };
+
+maak een file aan onder de var/named folder genaamd linux.lan met deze inhoud:
+$ORIGIN linux.lan.
+$TTL 1W
+
+@ IN SOA ns.linux.lan. victor.vanhooren.student.hogent.be. (
+        21120117 1D 1H 1W 1D )
+
+                IN      NS      ns1
+
+                IN      MX      10 mail
+
+ns1             IN      A       192.168.76.254
+
+db              IN      A       192.168.76.3
+
+web             IN      A       192.168.76.4
+www             IN      CNAME   web
+
+mail            IN      A       192.168.76.10
+smtp            IN      CNAME   mail
+imap            IN      CNAME   smtp
+
+als je nu nslookup doet naar de origin, mail server, db, web vanaf localhost
+via nslookup web.linux.lan localhost
+of www.linux.lan localhost of db.linux.lan of imap.linux.lan
+en daarna vanaf mint met adres 192.168.76.254
+dus een normal lookup waarbij je het adres kunt vinden
+
+script:
+log "installeer bind"
+sudo dnf install -y bind
+log "wijzig zodat hij naar alle interfaces luisterd en zodat iedereen toegang heeft"
+sudo sed -i 's/127.0.0.1/any/' /etc/named.conf
+sudo sed -i 's/localhost/any/' /etc/named.conf
+log "wijzig zodat recursion af staat en dat er een zone gemaakt wordt"
+sudo sed -i 's/recursion yes/recursion no/' /etc/named.conf
+sudo sed -zi 's/zone "." IN {\n\ttype hint;\n\tfile "named.ca";\n};/zone "linux.lan" IN {\n\ttype master;\n\tfile "linux.lan";\n\tnotify yes;\n\tallow-update { none; };\n};/' /etc/named.conf
+log "copy inhoud van zone file"
+sudo cp "${PROVISIONING_SCRIPTS}/files/${HOSTNAME}/linux.lan" /var/named
+log "geef toegang aan poort 53 die door BIND gebruikt wordt"
+sudo firewall-cmd --permanent --add-port 53/udp
+log "reload de firewall"
+sudo firewall-cmd --reload
+log "start de service"
+sudo systemctl start named
+log "enable de service"
+sudo systemctl enable named
+
+de inhoud van de zone file staat hierboven IN SOA enz.
+
+Iteratie 3:
+-----------
+file:
+-----
+$TTL 1W
+$ORIGIN 76.168.192.in-addr.arpa.
+
+@ IN SOA ns.linux.lan. victor.vanhooren.student.hogent.be. (
+        21120117 1D 1H 1W 1D )
+
+                IN      NS      ns1.linux.lan.
+
+254             IN      PTR       ns1.linux.lan.
+3               IN      PTR       db.linux.lan.
+4               IN      PTR       web.linux.lan.
+10              IN      PTR       mail.example.com.
+
+
+script:
+-------
+log "installeer bind"
+sudo dnf install -y bind
+log "wijzig zodat hij naar alle interfaces luisterd en zodat iedereen toegang heeft"
+sudo sed -i 's/127.0.0.1/any/' /etc/named.conf
+sudo sed -i 's/localhost/any/' /etc/named.conf
+log "wijzig zodat recursion af staat en dat er een zone gemaakt wordt"
+sudo sed -i 's/recursion yes/recursion no/' /etc/named.conf
+sudo sed -zi 's/zone "." IN {\n\ttype hint;\n\tfile "named.ca";\n};/zone "76.168.192.in-addr.arpa" IN {\n\ttype master;\n\tfile "76.168.192.in-addr.arpa";\n\tnotify yes;\n\tallow-update { none; };\n};/' /etc/named.conf
+log "copy inhoud van zone file"
+sudo cp "${PROVISIONING_SCRIPTS}/files/${HOSTNAME}/76.168.192.in-addr.arpa" /var/named
+log "geef toegang aan poort 53 die door BIND gebruikt wordt"
+sudo firewall-cmd --permanent --add-port 53/udp
+log "reload de firewall"
+sudo firewall-cmd --reload
+log "start de service"
+sudo systemctl start named
+log "enable de service"
+sudo systemctl enable named
+
+testen kan opnieuw via nslookup
+door nu het adres in te geven kan een naam gevonden worden dus een reverse lookup
+
+Iteratie 4 combineren van revere en forward lookup zones zodat beide gechect kunnen worden
+------------------------------------------------------------------------------------------
+log "installeer bind"
+sudo dnf install -y bind
+log "wijzig zodat hij naar alle interfaces luisterd en zodat iedereen toegang heeft"
+sudo sed -i 's/127.0.0.1/any/' /etc/named.conf
+sudo sed -i 's/localhost/any/' /etc/named.conf
+log "wijzig zodat recursion af staat en dat er een zone gemaakt wordt reverse en normal lookup zone"
+sudo sed -i 's/recursion yes/recursion no/' /etc/named.conf
+sudo sed -zi 's/zone "." IN {\n\ttype hint;\n\tfile "named.ca";\n};/zone "76.168.192.in-addr.arpa" IN {\n\ttype master;\n\tfile "76.168.192.in-addr.arpa";\n\tnotify yes;\n\tallow-update { none; };\n};/' /etc/named.conf
+sudo sed -zi 's/allow-update { none; };\n};/allow-update { none; };\n};\nzone "linux.lan" IN {\n\ttype master;\n\tfile "linux.lan";\n\tnotify yes;\n\tallow-update { none; };\n};/' /etc/named.conf
+log "copy inhoud van zone file voor de reverse en normal zone"
+sudo cp "${PROVISIONING_SCRIPTS}/files/${HOSTNAME}/76.168.192.in-addr.arpa" /var/named
+sudo cp "${PROVISIONING_SCRIPTS}/files/${HOSTNAME}/linux.lan" /var/named
+log "geef toegang aan poort 53 die door BIND gebruikt wordt"
+sudo firewall-cmd --permanent --add-port 53/udp
+log "reload de firewall"
+sudo firewall-cmd --reload
+log "start de service"
+sudo systemctl start named
+log "enable de service"
+sudo systemctl enable named
+
+
+dhcp:
+-----
+nog mee bezig
+dus geen vagrant destroy doen
+eerste installeren met sudo dnf install dhcp-server
+dan de etc/dhcp/dhcp.conf configureren
+weet niet wat de domeinnaam moet zijn hier en hoe ik dit juist kan testen op het einde
+
+
+# A slightly different configuration for an internal subnet.
+subnet 192.168.76.0 netmask 255.255.255.0 {
+  range 192.168.76.100 192.168.76.150;
+  option domain-name-servers 192.168.76.254;
+  option domain-name "linux.lan";
+}
+
+
+log "installeer bind"
+sudo dnf install -y bind
+log "installeer dhcp"
+sudo dnf install -y dhcp-server
+log "wijzig zodat hij naar alle interfaces luisterd en zodat iedereen toegang heeft"
+sudo sed -i 's/127.0.0.1/any/' /etc/named.conf
+sudo sed -i 's/localhost/any/' /etc/named.conf
+log "wijzig zodat recursion af staat en dat er een zone gemaakt wordt reverse en normal lookup zone"
+sudo sed -i 's/recursion yes/recursion no/' /etc/named.conf
+sudo sed -zi 's/zone "." IN {\n\ttype hint;\n\tfile "named.ca";\n};/zone "76.168.192.in-addr.arpa" IN {\n\ttype master;\n\tfile "76.168.192.in-addr.arpa";\n\tnotify yes;\n\tallow-update { none; };\n};/' /etc/named.conf
+sudo sed -zi 's/allow-update { none; };\n};/allow-update { none; };\n};\nzone "linux.lan" IN {\n\ttype master;\n\tfile "linux.lan";\n\tnotify yes;\n\tallow-update { none; };\n};/' /etc/named.conf
+log "wijzig de config file van dhcp.conf"
+sudo sed -zi 's/#   see dhcpd.conf(5) man page\n#/subnet 192.168.76.0 netmask 255.255.255.0 {\n\trange 192.168.76.100 192.168.76.150;\n\toption domain-name-servers 192.168.76.254;\n\toption domain-name "linux.lan";\n}/' /etc/dhcp/dhcpd.conf
+log "copy inhoud van zone file voor de reverse en normal zone"
+sudo cp "${PROVISIONING_SCRIPTS}/files/${HOSTNAME}/76.168.192.in-addr.arpa" /var/named
+sudo cp "${PROVISIONING_SCRIPTS}/files/${HOSTNAME}/linux.lan" /var/named
+log "geef toegang aan poort 53 die door BIND gebruikt wordt"
+sudo firewall-cmd --permanent --add-port 53/udp
+log "reload de firewall"
+sudo firewall-cmd --reload
+log "start de BIND service"
+sudo systemctl start named
+log "start dhcpd service"
+sudo systemctl start dhcpd
+log "enable de BIND service"
+sudo systemctl enable named
+log "enable de dhcpd service"
+sudo systemctl enable dhcpd
+
+het werkt wnr db en web up zijn
+het werkte niet door dat de lease nog niet ververst was dit doe door
+dhcpclient -r enp0s8
+dhpclient enp0s8
+tip: ip r command is ook zeer handig om na te gaan of hij nu iets ontvangen heeft van ip
+tip: via cat /var/lib/dhcp/dhclient.enp0s8.leases kan gezien worden welke leases uitgedeeld zijn
+wnr je nu met resolvectl gaat kijken zie je bij global dat de juiste adressen uitgedeeld zijn
+
+
+

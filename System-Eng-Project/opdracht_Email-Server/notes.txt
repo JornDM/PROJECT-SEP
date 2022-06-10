@@ -1,0 +1,5 @@
+> TODO <
+
+Eerst: AD-server verder in orde zetten          (X)
+daarna: email-server script wijzigen            
+Ten slotte: script email-server uitvoeren.
